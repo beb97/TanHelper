@@ -1,0 +1,123 @@
+    <?php
+	// N'afficher que les X premiers trajets FIN
+	if ($compteurTrajet > $nombreTrajetAAfficher) {
+		echo "</div>";
+		
+		echo "<button class=\"btn btn-default\" type=\"button\" data-toggle=\"collapse\" data-target=\"#plushoraires\" aria-expanded=\"false\" aria-controls=\"plushoraires\" >";
+		echo "Plus d'horaires...";
+		echo "</button>";
+		
+		echo "</p>";
+	}
+	
+	// Si aucun trajet trouvé
+	if ($compteurTrajet == 0) {
+		echo "<p> Aucun trajet dans l'heure à venir.</p>";
+	}
+	
+	// echo "<a href='autreligne.php'>Afficher une autre ligne</a>";
+	echo "<button class=\"btn btn-info\" type=\"button\" data-toggle=\"collapse\" data-target=\"#plusdelignes\" aria-expanded=\"false\" aria-controls=\"plusdelignes\" id='afficherLignes'>";
+	echo "Afficher une autre ligne";
+	echo "</button>";
+	
+	echo "<p>";
+	echo "<div class='collapse' id='plusdelignes' aria-expanded='false'>";
+		echo "<form action='index.php' type='get'>";
+			echo"<div id='arrets'></div>";
+			echo"<div id='lignes'></div>";
+			echo"<div id='sens'></div>";
+		echo "</form>";
+	echo "</div>";
+	echo "</p>";
+
+	?>
+		
+		<h2 class="bg-primary text-center">Etat du réseau TAN</h2>
+
+	<?php
+
+
+	$etatTrafic = $horaires->{'ligne'}->{'etatTrafic'};
+	if ($etatTrafic == 1) {
+		echo "<p class='bg-success'>";
+		echo ("<strong>Trafic normal</strong></p>");
+	} else {
+		echo "<p class='bg-danger'>";
+		echo ("<strong>Trafic potentiellement anormal</strong></p>");
+	}
+	echo "</p>", PHP_EOL;
+
+	$codeCouleur = $horaires->{'codeCouleur'};
+	$tauxTram    = 100 - (($codeCouleur - 1) * 20);
+
+	echo "<p>", "Niveau de service : ", $tauxTram, "% de la capacité max.", "</p>", PHP_EOL;
+
+
+	?>
+
+<!-- <h2 class="bg-primary">Autres :</h2> -->
+	<?php
+
+	$alertesSorted = array();
+	
+	$alertes = $infosTempsReel->{"opendata"}->{"answer"}->{"data"}->{"ROOT"}->{"LISTE_INFOTRAFICS"}->{"INFOTRAFIC"};
+	foreach ($alertes as $alerte) {
+		$lignes = $alerte->{"TRONCONS"};
+		$lignesFormates = str_replace("[", "", $lignes);
+		$lignesFormates = $lignesFormates.$alerte->{"CODE"};
+		$alertesSorted[$lignesFormates] = $alerte;
+	}
+	
+	$alertes = $infosPrevisionnelles->{"opendata"}->{"answer"}->{"data"}->{"ROOT"}->{"LISTE_INFOTRAFICS"}->{"INFOTRAFIC"};
+	foreach ($alertes as $alerte) {
+		$lignes = $alerte->{"TRONCONS"};
+		$lignesFormates = str_replace("[", "", $lignes);
+		$lignesFormates = $lignesFormates.$alerte->{"CODE"};
+		$alertesSorted[$lignesFormates] = $alerte;
+	}
+	// print_r($alertesSorted);
+	ksort($alertesSorted);
+	
+	$alertes=$alertesSorted;
+	
+	echo "<button class=\"btn btn-info\" type=\"button\" data-toggle=\"collapse\" data-target=\"#alertes\" aria-expanded=\"false\" aria-controls=\"alertes\">";
+	echo "Afficher les travaux";
+	echo "</button>";
+
+	echo "<p>";
+	echo "<div class='collapse' id='alertes' aria-expanded='false'>";
+		$numeroAlerte = 0;
+		foreach ($alertes as $alerte) {
+			$numeroAlerte++;
+			echo "<p>";
+			echo "<button class=\"btn btn-secondary\" type=\"button\" data-toggle=\"collapse\" data-target=\"#alerte$numeroAlerte\" aria-expanded=\"false\" aria-controls=\"alerte$numeroAlerte\">";
+			echo $alerte->{"INTITULE"};
+			echo "</button>";
+			$lignes = $alerte->{"TRONCONS"};
+			$symbolesToRemove = array("[", "]", "/-");
+			
+			$lignesFormates = str_replace($symbolesToRemove, "", $lignes);
+
+			$lignesFormates = str_replace("/1", "(a)", $lignesFormates);
+			$lignesFormates = str_replace("/2", "(b)", $lignesFormates);
+			
+			$lignesFormates = str_replace(";", " et ", $lignesFormates);
+			$lignesFormates = str_replace("/", " / ", $lignesFormates);
+			
+			echo " Lignes ", $lignesFormates, PHP_EOL;
+			
+			echo "<div class=\"collapse\" id=\"alerte$numeroAlerte\" aria-expanded=\"false\">";
+			echo "<div class=\"card card-block\">";	
+				echo "<p><u>", "Du ", $alerte->{"DATE_DEBUT"}, " à ", $alerte->{"HEURE_DEBUT"};
+				// Expression ternaire deguellase pour remplacer les dates de fin vide par "?".
+				$messageDateFin = isset($alerte->{"DATE_FIN"})&&!empty($alerte->{"DATE_FIN"})?$alerte->{"DATE_FIN"}." à ".$alerte->{"HEURE_FIN"}:"?";
+				echo " au ", $messageDateFin, "</u></p>", PHP_EOL;
+				echo "<p>", $alerte->{"INTITULE"}, " : ", $alerte->{"RESUME"}, "</p>", PHP_EOL;
+				// echo "<p>", "Lignes : ", $alerte->{"TRONCONS"}, "</p>", PHP_EOL;
+			echo "</div>";
+			echo "</div>";
+			echo "</p>";
+		}
+	echo "</div>";
+	echo "</p>";
+	
