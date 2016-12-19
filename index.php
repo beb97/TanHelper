@@ -23,49 +23,66 @@ ORANGE = “6”; 0%
     <meta name="author" content="PB">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-    <TITLE>TAN prochains départs </TITLE>
+        <TITLE>TAN prochains départs </TITLE>
 </head>
 <body>
-<div class="container" ng-controller="TramController as tram" ng-cloak>
-    <h2 class='bg-primary text-center' ng-bind="tram.ligne.arret">Loading..</h2>
-    <h5 class='bg-primary text-center' style='margin-top:-10px' ng-bind-template="Ligne {{tram.ligne.numero}} direction {{tram.ligne.sens}}"></h5>
-
+<div id="tram" class="container" ng-controller="TramController as tram" ng-cloak>
+    <h2 class='bg-primary text-center' ng-bind="ligne.arret">Loading..</h2>
+    <h5 class='bg-primary text-center' style='margin-top:-10px' ng-bind-template="Ligne {{ligne.numero}} direction {{ligne.sens}}"></h5>
+S
 
     <div id="tramproche">
-        <div ng-repeat="nextTram in tram.tram | limitTo:tram.numberOfTramsToShow">
-            <p ng-class="{ 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}} : {{nextTram.attente}}">
+        <div ng-repeat="nextTram in tram | limitTo:numberOfTramsToShow">
+            <p ng-class="{ 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}} : {{nextTram.temps}}">
             </p>
         </div>
 
     </div>
 
-    <div id="tramloin" ng-show="tram.loadMore" ng-repeat="nextTram in tram.tram | limitTo:tram.numberOfTramsToShowMax:tram.numberOfTramsToShow">
-        <p class='' ng-bind-template="{{nextTram.terminus}} : {{nextTram.attente}}">
+    <div id="tramloin" ng-show="tram.loadMore" ng-repeat="nextTram in tram | limitTo:numberOfTramsToShowMax:numberOfTramsToShow">
+        <p class='' ng-bind-template="{{nextTram.terminus}} : {{nextTram.temps}}">
         </p>
     </div>
 
     <button class="btn btn-default" type="button" id="afficherHoraires" ng-click="tram.loadMore = !tram.loadMore">
-    Plus d'horaires...
+        Plus d'horaires...
     </button>
 
     <button class="btn btn-info" type="button" id='afficherLignes'>
         Afficher une autre ligne
     </button>
 
+    <select ng-model="selectedligne" ng-options="ligne.codeLieu as ligne.libelle for ligne in temp">
+    </select>
+
 </div>
 
-<div class="container" ng-controller="TraficController as trafic">
+<div class="container" ng-controller="TraficController as trafic" ng-cloak>
     <h2 class="bg-primary text-center">Etat du réseau TAN</h2>
     <p class='bg-success' ng-bind="trafic.trafic.status">
     </p>
     <p class='' ng-bind="trafic.trafic.niveau">
     </p>
-    <button class="btn btn-info" type="button" id='affichertravaux'>
+    <button class="btn btn-info" type="button" id='affichertravaux' ng-click="trafic.loadTravaux = !trafic.loadTravaux">
         Afficher les travaux
     </button>
+    <div id="travaux" ng-show="trafic.loadTravaux" ng-repeat="incident in trafic.travaux track by $index" ng-init="details = false">
+        <button ng-bind-template="{{incident.titre}}" class="btn btn-secondary" id='afficherdetails' ng-click="details = !details">
+        </button>{{incident.lignes}}
+        <div id="details" ng-show="details">
+            <p class='' ng-bind-template="{{incident.horaires}}">><u>   </u></p>
+            <p class='' ng-bind-template="{{incident.message}}"></p>
+        </div>
+    </p>
+</div>
+</p>
+</div>
+</div>
+
 
 </div>
+
+
 
 <!-- ANGULAR -->
 <script type="text/javascript" src="js/angular.js"></script>
