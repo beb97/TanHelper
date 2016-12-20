@@ -26,34 +26,30 @@ ORANGE = “6”; 0%
         <TITLE>TAN prochains départs </TITLE>
 </head>
 <body>
-<div id="tram" class="container" ng-controller="TramController as tram" ng-cloak>
+<div id="tram" class="container" ng-controller="TramController as tramCtrl" ng-cloak>
     <h2 class='bg-primary text-center' ng-bind="ligne.arret">Loading..</h2>
     <h5 class='bg-primary text-center' style='margin-top:-10px' ng-bind-template="Ligne {{ligne.numero}} direction {{ligne.sens}}"></h5>
-S
 
     <div id="tramproche">
-        <div ng-repeat="nextTram in tram | limitTo:numberOfTramsToShow">
-            <p ng-class="{ 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}} : {{nextTram.temps}}">
-            </p>
+        <div >
+            <p ng-repeat="nextTram in tram | limitTo:limit | filter:evaluateDisplay()" ng-class="{ 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}} : {{nextTram.temps}}"></p>
         </div>
-
     </div>
 
-    <div id="tramloin" ng-show="tram.loadMore" ng-repeat="nextTram in tram | limitTo:numberOfTramsToShowMax:numberOfTramsToShow">
-        <p class='' ng-bind-template="{{nextTram.terminus}} : {{nextTram.temps}}">
-        </p>
-    </div>
-
-    <button class="btn btn-default" type="button" id="afficherHoraires" ng-click="tram.loadMore = !tram.loadMore">
+    <button class="btn btn-default" type="button" id="afficherHoraires" ng-click="loadMore()">
         Plus d'horaires...
     </button>
 
-    <button class="btn btn-info" type="button" id='afficherLignes'>
+    <button class="btn btn-info" type="button" id='afficherLignes' ng-click="displayOtherArrets()">
         Afficher une autre ligne
     </button>
 
-    <select ng-model="selectedligne" ng-options="ligne.codeLieu as ligne.libelle for ligne in temp">
-    </select>
+    <div id="arretSelector" ng-show="showOtherArret" ng-cloak>
+        <select ng-change="displayOtherLigne()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets | filter:{libelle:ligneCompletion}" ></select>
+        <input ng-model="ligneCompletion"></input>
+        <select ng-show="showOtherLigne" ng-change="displayOtherSens()" ng-model="selectedligne" ng-options="ligne.numLigne as ligne.numLigne for ligne in selectedArret.ligne" ></select>
+        <select ng-show="showOtherSens" ng-change="" ng-model="selectedSens" ng-options="s.sens as s.sens for s in sens"></select>
+    </div>
 
 </div>
 
@@ -67,10 +63,10 @@ S
         Afficher les travaux
     </button>
     <div id="travaux" ng-show="trafic.loadTravaux" ng-repeat="incident in trafic.travaux track by $index" ng-init="details = false">
-        <button ng-bind-template="{{incident.titre}}" class="btn btn-secondary" id='afficherdetails' ng-click="details = !details">
-        </button>{{incident.lignes}}
+        <button ng-bind-template="{{incident.titre}} : Lignes {{incident.lignes}}" class="btn btn-secondary" id='afficherdetails' ng-click="details = !details">
+        </button>
         <div id="details" ng-show="details">
-            <p class='' ng-bind-template="{{incident.horaires}}">><u>   </u></p>
+            <p class='' ng-bind-template="{{incident.horaires}}"><u>   </u></p>
             <p class='' ng-bind-template="{{incident.message}}"></p>
         </div>
     </p>
@@ -87,6 +83,7 @@ S
 <!-- ANGULAR -->
 <script type="text/javascript" src="js/angular.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
+<script type="text/javascript" src="js/horaires.js"></script>
 
 <!-- PERSO -->
 <!-- <script type="text/javascript" src="js/tan.js"></script> -->
