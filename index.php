@@ -23,32 +23,46 @@ ORANGE = “6”; 0%
     <meta name="author" content="PB">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-        <TITLE>TAN prochains départs </TITLE>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <TITLE>TAN prochains départs </TITLE>
 </head>
 <body>
 <div id="tram" class="container" ng-controller="TramController as tramCtrl" ng-cloak>
-    <h2 class='bg-primary text-center' ng-bind="ligne.arret">Loading..</h2>
-    <h5 class='bg-primary text-center' style='margin-top:-10px' ng-bind-template="Ligne {{ligne.numero}} direction {{ligne.sens}}"></h5>
+    <h2 class='bg-primary text-center' ng-bind="ligne.libelle">Loading..</h2>
+    <h5 class='bg-primary text-center' style='margin-top:-10px' ng-bind-template="Ligne {{ligne.numLigne}} direction {{ligne.sens}}"></h5>
+    <img ng-src="img/lignes/{{ligne.numero}}.gif"></img>
 
-    <div id="tramproche">
+    <div id="tramproche" ng-init="getHoraires()">
         <div >
             <p ng-repeat="nextTram in tram | limitTo:limit | filter:evaluateDisplay()" ng-class="{ 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}} : {{nextTram.temps}}"></p>
         </div>
     </div>
 
-    <button class="btn btn-default" type="button" id="afficherHoraires" ng-click="loadMore()">
-        Plus d'horaires...
-    </button>
+    <div ng-show="isLigneShown" ng-repeat="l in selectedArret.ligne">
+        <img ng-src="img/lignes/{{l.ligne.numLigne}}.gif"></img>
+    </div>
 
-    <button class="btn btn-info" type="button" id='afficherLignes' ng-click="displayOtherArrets()">
+<!--    <button class="btn btn-default" type="button" id="afficherPlusHoraires" ng-click="loadMore()">-->
+<!--        Plus d'horaires...-->
+<!--    </button>-->
+
+    <button class="btn btn-info" type="button" id='afficherLignes' ng-click="gererArrets()">
         Afficher une autre ligne
     </button>
 
-    <div id="arretSelector" ng-show="showOtherArret" ng-cloak>
-        <select ng-change="displayOtherLigne()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets | filter:{libelle:ligneCompletion}" ></select>
-        <input ng-model="ligneCompletion"></input>
-        <select ng-show="showOtherLigne" ng-change="displayOtherSens()" ng-model="selectedligne" ng-options="ligne.numLigne as ligne.numLigne for ligne in selectedArret.ligne" ></select>
-        <select ng-show="showOtherSens" ng-change="" ng-model="selectedSens" ng-options="s.sens as s.sens for s in sens"></select>
+    <div id="arretSelector" ng-show="isArretShown" ng-cloak>
+        <select ng-change="gererLignes()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets" ></select>
+<!--        <select ng-change="gererLignes()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets | filter:{libelle:ligneCompletion}" ></select>-->
+<!--        <input ng-model="ligneCompletion"></input>-->
+
+
+        <select ng-show="isLigneShown" ng-change="gererSens()" ng-model="newLigne.numLigne" ng-options="ligne.numLigne as ligne.numLigne for ligne in selectedArret.ligne" ></select>
+        <select ng-show="isSensShown" ng-change="updateSens()" ng-model="newLigne.sens" ng-options="s.sens as s.sens for s in sens"></select>
+
+        <button class="btn btn-success" type="button" id='afficherHoraires' ng-click="gererHoraires()">
+            Afficher
+        </button>
     </div>
 
 </div>
