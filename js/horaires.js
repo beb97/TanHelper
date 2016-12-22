@@ -23,22 +23,28 @@
 
         $scope.tram;
 
-        $scope.ligne =  {
-            numLigne: 1,
-            libelle: "Ranzay",
+        $scope.defaultValue = {
             codeLieu: "RAZA",
-            codeArret: "RAZA1",
-            sens: 1,
-            directionSens: "1"
+            numLigne: "1",
+            sens: 1
+        };
+
+        $scope.filter = {
+            numLigne: [],
+            sens: [],
+            selectedLigne: []
+        };
+
+
+        $scope.ligne =  {
+            numLigne: "1",
+            libelle: "Ranzay",
         };
 
         $scope.newLigne = {
-            numLigne: 1,
+            numLigne: "1",
             libelle: "Ranzay",
-            codeLieu: "RAZA",
-            codeArret: "RAZA1",
-            sens: 1,
-            directionSens: "1"
+            codeLieu: "RAZA"
         };
 
         // http://open.tan.fr/ewp/arrets.json
@@ -84,28 +90,40 @@
             codeCouleur:2
         };
 
-        $scope.limit = 10;
-        $scope.numberOfTramsToShow = 3;
-        $scope.numberOfTramsToShowMax = 9;
+        $scope.tramSettings = {
+            limit: 9,
+            numberOfTramsToShow: 3,
+            numberOfTramsToShowMax: 9,
 
-        $scope.isArretShown = false;
-        $scope.isLigneShown = false;
-        $scope.isSensShown = false;
+            isArretShow: false,
+            isLigneShown: false,
+            isSensShown: false
+        };
+
         $scope.selectedArret = '0';
-        $scope.selectedLigne = '';
-        $scope.selectedSens = 1;
 
         // Les retours des GET
         $scope.arrets = [{libelle:"Choisir arret...", codeLieu:'0'}];
         $scope.sens = [{sens:1, directionSens1:"Sens 1"}, {sens:2, directionSens2:"Sens 2"}];
         $scope.retourLigne;
 
+        $scope.initTram = function () {
+            $scope.filter.numLigne.push($scope.defaultValue.numLigne);
+            $scope.filter.selectedLigne.push($scope.defaultValue.numLigne);
+            $scope.filter.sens.push($scope.defaultValue.sens);
+
+            $scope.ligne.codeLieu = $scope.defaultValue.codeLieu;
+
+            $scope.getHoraires();
+
+        }
+
         $scope.gererArrets = function() {
 
             // Afficher bloc arrets
             // Ne charger les arrets qu'une fois
-            if (!$scope.isArretShown) {
-                $scope.isArretShown = true;
+            if (!$scope.tramSettings.isArretShown) {
+                $scope.tramSettings.isArretShown = true;
                 // Charger arrets
                 $scope.loadArrets();
             }
@@ -131,7 +149,19 @@
         };
 
         $scope.gererLignes = function() {
-            $scope.isLigneShown = true;
+            // $scope.tramSettings.isLigneShown = true;
+
+            // reset le filtre :
+            // $scope.filter.numLigne.length = 0;
+            // console.log($scope.selectedArret);
+
+
+            for (let currentLigne of $scope.selectedArret.ligne) {
+                console.log(currentLigne);
+                console.log(currentLigne.numLigne);
+                $scope.filter.numLigne.push(currentLigne.numLigne);
+            }
+
             // Affectation des nouvelles valeurs de l'arret
             //$scope.newLigne.numLigne = $scope.selectedArret.ligne.numero;
             $scope.newLigne.codeLieu = $scope.selectedArret.codeLieu;
@@ -140,22 +170,28 @@
 
         $scope.gererSens = function () {
             // Affectation des nouvelles valeurs de la ligne
-            $scope.isSensShown = true;
+            $scope.tramSettings.isSensShown = true;
             // Récupération des sens
             $scope.getLigne();
             // Ceci est deja setté par le model
             // $scope.newLigne.numLigne = $scope.selectedArret.ligne.numero;
         };
 
-        $scope.updateSens = function () {
-            // Affectation des nouvelles valeurs de la ligne
-            if ($scope.newLine.sens === 1 ) {
-                $scope.newLigne.directionSens = $scope.newLigne.directionSens1;
+        $scope.updateLigne = function (ligne) {
+
+            if ($scope.filter.selectedLigne.indexOf(ligne) == -1) {
+                $scope.filter.selectedLigne.push(ligne);
             } else {
-                $scope.newLigne.directionSens = $scope.newLigne.directionSens2;
+                $scope.filter.selectedLigne.pop(ligne);
             }
-            // Ceci est deja setté par le model
-            // $scope.newLigne.numLigne = $scope.selectedArret.ligne.numero;
+        };
+
+        $scope.resetFilter = function () {
+            $scope.filter.selectedLigne.length=0;
+            $scope.filter.numLigne.length=0;
+        }
+
+        $scope.updateSens = function () {
         };
 
         $scope.displayOtherSens = function() {
@@ -174,8 +210,22 @@
         $scope.evaluateDisplay = function () {
             return function (nextTram) {
                 var toDisplay = true;
+                // Si on a un filtre sur la ligne
+                if ($scope.filter.selectedLigne.length > 0) {
+                    // console.log("On filtre les lignes sur ");
+                    // console.log($scope.filter.selectedLigne[0]);
 
-                if (nextTram.ligne.numLigne != $scope.ligne.numLigne) return false;
+                        console.log(nextTram.ligne.numLigne);
+                    // On ne retourne pas l'horaire si elle ne porte pas sur nos lignes
+                    // if ( $scope.filter.selectedLigne.indexOf(nextTram.ligne.numLigne) === -1 ) {
+                    if ( $scope.filter.selectedLigne.indexOf(nextTram.ligne.numLigne) === -1) {
+                        console.log(" est refusé");
+                        return false;
+                    } else {
+                        console.log("est accepté");
+
+                    }
+                }
                 //  if (nextTram.ligne.typeLigne != 1) return false;
                 //   if (nextTram.sens != $scope.ligne.sens) return false;
 
@@ -190,6 +240,13 @@
             $scope.ligne.numLigne = $scope.newLigne.numLigne;
             $scope.ligne.sens = $scope.newLigne.sens;
             $scope.ligne.directionSens = $scope.newLigne.directionSens;
+
+            // On vide les filtres
+            $scope.resetFilter();
+
+            // On gére les lignes
+            $scope.gererLignes();
+
             // On récupère les infos correspondantes
             $scope.getHoraires();
         };
@@ -245,5 +302,18 @@
         }
 
     }] );
+
+    // Gère le cas ou l'image n'est pas chargée
+    app.directive('errSrc', function() {
+        return {
+            link: function(scope, element, attrs) {
+                element.bind('error', function() {
+                    if (attrs.src != attrs.errSrc) {
+                        attrs.$set('src', attrs.errSrc);
+                    }
+                });
+            }
+        }
+    });
 
 })();
