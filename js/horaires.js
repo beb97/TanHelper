@@ -91,9 +91,9 @@
         };
 
         $scope.tramSettings = {
-            limit: 9,
-            numberOfTramsToShow: 3,
-            numberOfTramsToShowMax: 9,
+            limit: 15,
+            numberOfTramsToShow: 15,
+            numberOfTramsToShowMax: 15,
 
             isArretShow: false,
             isLigneShown: false,
@@ -189,6 +189,7 @@
         $scope.resetFilter = function () {
             $scope.filter.selectedLigne.length=0;
             $scope.filter.numLigne.length=0;
+            $scope.filter.sens.length=0;
         }
 
         $scope.updateSens = function () {
@@ -210,24 +211,23 @@
         $scope.evaluateDisplay = function () {
             return function (nextTram) {
                 var toDisplay = true;
+
                 // Si on a un filtre sur la ligne
                 if ($scope.filter.selectedLigne.length > 0) {
-                    // console.log("On filtre les lignes sur ");
-                    // console.log($scope.filter.selectedLigne[0]);
 
-                        console.log(nextTram.ligne.numLigne);
                     // On ne retourne pas l'horaire si elle ne porte pas sur nos lignes
-                    // if ( $scope.filter.selectedLigne.indexOf(nextTram.ligne.numLigne) === -1 ) {
                     if ( $scope.filter.selectedLigne.indexOf(nextTram.ligne.numLigne) === -1) {
-                        console.log(" est refusé");
                         return false;
-                    } else {
-                        console.log("est accepté");
-
                     }
                 }
-                //  if (nextTram.ligne.typeLigne != 1) return false;
-                //   if (nextTram.sens != $scope.ligne.sens) return false;
+
+                if ($scope.filter.sens.length > 0) {
+
+                    // On ne retourne pas l'horaire si elle ne porte pas sur nos lignes
+                    if ( $scope.filter.sens.indexOf(nextTram.sens) === -1) {
+                        return false;
+                    }
+                }
 
                 return toDisplay;
             }
