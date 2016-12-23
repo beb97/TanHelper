@@ -21,7 +21,23 @@
         // http://data.nantes.fr/api/getInfoTraficTANTempsReel/1.0/CTVUMHRNPTQWKE8/?output=json
         // http://data.nantes.fr/api/getInfoTraficTANPrevisionnel/1.0/CTVUMHRNPTQWKE8/?output=json
 
-        $scope.tram;
+        $scope.tramHoraires = {
+            horaires:[],
+            formatAttente: function (attente) {
+                if(attente == "horaire.proche" || attente == "Proche" ) attente ="<1 mn";
+                return attente;
+            },
+            formatSens: function (sens) {
+                if (sens==1) {
+                    sens = "<";
+                } else if (sens==2) {
+                    sens = ">";
+                } else {
+                    sens = "";
+                }
+                return sens;
+            }
+        };
 
         $scope.defaultValue = {
             codeLieu: "RAZA",
@@ -108,10 +124,10 @@
             isArretShow: false
         };
 
-        $scope.selectedArret = '0';
+        $scope.selectedArret;
 
         // Les retours des GET
-        $scope.arrets = [{libelle:"Choisir arret...", codeLieu:'0'}];
+        $scope.arrets = [{codeLieu:'0',libelle:"Loading...", disabled:true}];
         $scope.sens = [{sens:1, directionSens1:"Sens 1"}, {sens:2, directionSens2:"Sens 2"}];
         $scope.retourLigne;
 
@@ -121,6 +137,8 @@
             $scope.filter.sens.push($scope.defaultValue.sens);
 
             $scope.ligne.codeLieu = $scope.defaultValue.codeLieu;
+
+            $scope.selectedArret = $scope.arrets[0];
 
             $scope.getHoraires();
 
@@ -144,8 +162,8 @@
                 params: { url: "http://open.tan.fr/ewp/arrets.json"}
             };
 
-            $http(req).then(function(response,status) { // SUCCESS
-                    $scope.arrets = response.data;
+            $http(req).then(function(response) { // SUCCESS
+                    $scope.mapperArrets(response.data);
                     console.log('LOADED ARRETS');
                 }
                 , function (response) { //ERROR
@@ -153,6 +171,13 @@
                 }
             );
         };
+
+        $scope.mapperArrets = function (arrets) {
+            $scope.arrets = $scope.arrets.concat(arrets);
+            $scope.arrets[0].libelle = "Choisir arret :";
+            $scope.selectedArret = $scope.arrets[0];
+        };
+
 
         $scope.updateLigne = function (ligne) {
 
@@ -212,7 +237,8 @@
             }
 
             // On vide les horaires actuelles
-            $scope.tram = "";
+            $scope.tramHoraires.horaires.length = 0;
+            $scope.tramHoraires.horaires.push({terminus:"Loading..."});
 
             // On récupère les infos correspondantes
             $scope.getHoraires();
@@ -229,8 +255,8 @@
             $http(urlHoraires).then(function(response,status) {
                     // SUCCESS
                     console.log('HELLO HORRAIRES');
-                    $scope.tram = response.data;
-                    // console.log($scope.tram);
+                    $scope.tramHoraires.horaires = response.data;
+                    // console.log($scope.tramHoraires);
                     $scope.status = status;
                 }
                 , function (response) {
@@ -252,7 +278,7 @@
                     // SUCCESS
                     console.log('HELLO HORRAIRES');
                     $scope.mapperLigne(response.data);
-                    // console.log($scope.tram);
+                    // console.log($scope.tramHoraires);
                     $scope.status = status;
                 }
                 , function (response) {

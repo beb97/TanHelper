@@ -6,9 +6,10 @@
     <meta name="description" content="Départs des prochains tram">
     <meta name="author" content="PB">
     <link rel="stylesheet" href="css/tanhelper.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">-->
+<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">-->
+<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">-->
+<!--    <link rel=”stylesheet” href=”https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/css/bootstrap-select.min.css”>-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
     <TITLE>TAN prochains départs </TITLE>
@@ -17,7 +18,7 @@
 <div class="container">
 
 <div id="tram" class="tram-container" ng-controller="TramController as tramCtrl" ng-cloak ng-init="initTram()">
-    <h2 class='bg-primary text-center' ng-bind="ligne.libelle">Loading..</h2>
+    <h1 class='bg-info text-xs-center' ng-bind="ligne.libelle">Loading..</h1>
 <!--    <h5 class='bg-primary text-center' ng-bind-template="Ligne {{filter.selectedLigne[0]}}"></h5>-->
 
     <div class="ligne-selector-container" >
@@ -25,27 +26,55 @@
             Autre ligne
         </button>
         <div id="arretSelector" ng-show="tramSettings.isArretShown" ng-cloak>
-            <select ng-change="gererHoraires()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets" ></select>
+            <select class="selectpicker" data-live-search="true" ng-change="gererHoraires()" ng-model="selectedArret" ng-options="arret as arret.libelle  disable when arret.disabled for arret in arrets" >
+                <option disabled>Chargement...</option>
+            </select>
         </div>
     </div>
 
     <div class="ligne-selector-container">
-        <div ng-show="tramSettings.isArretShown">
+        <div ng-show="tramSettings.isArretShown" ng-cloak>
             <img class="ligne-selector" ng-class=" {'overlay' : filter.isLigneGreyed(currentLigne)} " ng-repeat="currentLigne in filter.numLigne" ng-click="updateLigne(currentLigne)" ng-src="img/lignes/{{currentLigne}}.gif" err-src="img/lignes/error.jpg"></img>
         </div >
     </div>
 
-        <div id="tramproche" class="ligne row" ng-repeat="nextTram in tram | limitTo:tramSettings.limit | filter:evaluateDisplay()">
-            <div class="col-xs-1 col-m-1" ><img class='ligne-thumbnail' ng-src="img/lignes/{{nextTram.ligne.numLigne}}.gif"  err-src="img/lignes/error.jpg"></img></div>
-            <div class="col-xs-1 col-m-1 glyphicon" ng-click="updateSens(nextTram.sens)"  ng-class=" (nextTram.sens == 1) ? 'glyphicon glyphicon-chevron-left' : 'glyphicon glyphicon-chevron-right' "></div>
-            <div class="col-xs-7 col-m-6" ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}}"></div>
-            <div class="col-xs-3 col-m-4" ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.temps}}"></div>
-        </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead class="thead-inverse">
+                <tr>
+                    <th>Ligne</th>
+                    <th>Sens</th>
+                    <th>Direction</th>
+                    <th>Attente</th>
+                </tr>
+            </thead>
+            <tbody class="table-hover">
+                <tr id="tramproche" class="" ng-class=" { 'bg-success' : $first}" ng-repeat="nextTram in tramFiltered = ( tramHoraires.horaires | filter:evaluateDisplay() | limitTo:tramSettings.limit)">
+                    <td><img class='ligne-thumbnail' ng-src="img/lignes/{{nextTram.ligne.numLigne}}.gif"  err-src="img/lignes/error.jpg"></img></td>
+                    <td ng-click="updateSens(nextTram.sens)" ng-bind-template="{{tramHoraires.formatSens(nextTram.sens)}}"></td>
+                    <td ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}}"> </td>
+                    <td ng-class=" { 'bg-success' : $first}" ng-bind-template="{{tramHoraires.formatAttente(nextTram.temps)}}"> </td>
+<!--                    <td ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.temps}}"> </td>-->
+                </tr>
+
+                <!-- SI PAS DE TRAM-->
+                <tr ng-show="!tramFiltered.length">
+                    <td></td>
+                    <td></td>
+                    <td>Aucun tram dans l'heure</td>
+                    <td></td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 
 <div class="trafic-container" ng-controller="TraficController as trafic" ng-cloak>
-    <h2 class="bg-primary text-center">Etat du réseau TAN</h2>
+    <h1 class='bg-info text-xs-center'>Etat du réseau TAN</h1>
     <p class='bg-success' ng-bind="trafic.trafic.status">
     </p>
     <p class='' ng-bind="trafic.trafic.niveau">
@@ -77,13 +106,17 @@
 <!-- <script type="text/javascript" src="js/tan.js"></script> -->
 
 <!--  JQUERY  -->
-
-<script type="text/javascript" src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-<script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<!--<script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>-->
 
 <!-- BOOTSTRAP -->
-<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js" integrity="sha384-BLiI7JTZm+JWlgKa0M0kGRpJbF2J8q+qreVrKBC47e3K6BW78kGLrCkeRX6I9RoK" crossorigin="anonymous"></script>-->
+<!--<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>-->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js" integrity="sha384-BLiI7JTZm+JWlgKa0M0kGRpJbF2J8q+qreVrKBC47e3K6BW78kGLrCkeRX6I9RoK" crossorigin="anonymous"></script>
+
+
+<!-- BETTER SELECTOR -->
+<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/js/bootstrap-select.min.js"></script>-->
+
 
 </body>
 </html>
