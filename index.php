@@ -1,19 +1,3 @@
-<!--
-http://open.tan.fr/ewp/horairesarret.json/RAZA/1/1
-SENS 1 : François Mitterrand / Jamet
-SENS 2 : Ranzay
-
-Champ “codeCouleur”
-BLEU = “1”; 100%
-VERT = “2”;
-JAUNE = “3”;
-VIOLET = “4”;
-BLANC = “5”;
-ORANGE = “6”; 0%
-
-"etatTrafic" => 1, "libelleTrafic" => "Trafic normal"
-
--->
 <html ng-app="tram" >
 <head>
     <meta charset="utf-8">
@@ -21,57 +5,46 @@ ORANGE = “6”; 0%
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Départs des prochains tram">
     <meta name="author" content="PB">
+    <link rel="stylesheet" href="css/tanhelper.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">-->
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
     <TITLE>TAN prochains départs </TITLE>
 </head>
 <body>
-<div id="tram" class="container" ng-controller="TramController as tramCtrl" ng-cloak ng-init="initTram()">
+<div class="container">
+
+<div id="tram" class="tram-container" ng-controller="TramController as tramCtrl" ng-cloak ng-init="initTram()">
     <h2 class='bg-primary text-center' ng-bind="ligne.libelle">Loading..</h2>
-    <h5 class='bg-primary text-center' style='margin-top:-10px' ng-bind-template="Ligne {{filter.selectedLigne[0]}}"></h5>
-    <img ng-src="img/lignes/{{ligne.numero}}.gif"></img>
+<!--    <h5 class='bg-primary text-center' ng-bind-template="Ligne {{filter.selectedLigne[0]}}"></h5>-->
 
-    <div id="tramproche">
-        <div ng-repeat="nextTram in tram | limitTo:tramSettings.limit | filter:evaluateDisplay()">
-            <span class="col-xs-1" ><img style="width: 15px; height: 15px;" class='' ng-src="img/lignes/{{nextTram.ligne.numLigne}}.gif"  err-src="img/lignes/error.jpg"></img></span>
-            <span class="col-xs-1 glyphicon" ng-class=" (nextTram.sens == 1) ? 'glyphicon glyphicon-chevron-left' : 'glyphicon glyphicon-chevron-right' "></span>
-            <span class="col-xs-5" ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}}"></span>
-            <span class="col-xs-5" ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.temps}}"></span>
-
+    <div class="ligne-selector-container" >
+        <button class="btn btn-info" ng-show="!tramSettings.isArretShown" type="button" id='afficherLignes' ng-click="gererArrets()">
+            Autre ligne
+        </button>
+        <div id="arretSelector" ng-show="tramSettings.isArretShown" ng-cloak>
+            <select ng-change="gererHoraires()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets" ></select>
         </div>
     </div>
 
-    <div ng-show="tramSettings.isArretShown">
-        <img ng-repeat="currentLigne in filter.numLigne" ng-click="updateLigne(currentLigne)" ng-src="img/lignes/{{currentLigne}}.gif" err-src="img/lignes/error.jpg"></img>
+    <div class="ligne-selector-container">
+        <div ng-show="tramSettings.isArretShown">
+            <img class="ligne-selector" ng-class=" {'overlay' : filter.isLigneGreyed(currentLigne)} " ng-repeat="currentLigne in filter.numLigne" ng-click="updateLigne(currentLigne)" ng-src="img/lignes/{{currentLigne}}.gif" err-src="img/lignes/error.jpg"></img>
+        </div >
     </div>
 
-    <!--    <button class="btn btn-default" type="button" id="afficherPlusHoraires" ng-click="loadMore()">-->
-    <!--        Plus d'horaires...-->
-    <!--    </button>-->
-
-    <button class="btn btn-info" type="button" id='afficherLignes' ng-click="gererArrets()">
-        Afficher une autre ligne
-    </button>
-
-    <div id="arretSelector" ng-show="tramSettings.isArretShown" ng-cloak>
-        <select ng-change="gererHoraires()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets" ></select>
-        <!--        <select ng-change="gererLignes()" ng-model="selectedArret" ng-options="arret as arret.libelle for arret in arrets | filter:{libelle:ligneCompletion}" ></select>-->
-        <!--        <input ng-model="ligneCompletion"></input>-->
-
-
-        <!--        <select ng-show="tramSettings.isLigneShown" ng-change="gererSens()" ng-model="newLigne.numLigne" ng-options="ligne.numLigne as ligne.numLigne for ligne in selectedArret.ligne" ></select>-->
-        <!--        <select ng-show="tramSettings.isSensShown" ng-change="updateSens()" ng-model="newLigne.sens" ng-options="s.sens as s.sens for s in sens"></select>-->
-
-        <button class="btn btn-success" type="button" id='afficherHoraires' ng-click="gererHoraires()">
-            Afficher
-        </button>
-    </div>
+        <div id="tramproche" class="ligne row" ng-repeat="nextTram in tram | limitTo:tramSettings.limit | filter:evaluateDisplay()">
+            <div class="col-xs-1 col-m-1" ><img class='ligne-thumbnail' ng-src="img/lignes/{{nextTram.ligne.numLigne}}.gif"  err-src="img/lignes/error.jpg"></img></div>
+            <div class="col-xs-1 col-m-1 glyphicon" ng-click="updateSens(nextTram.sens)"  ng-class=" (nextTram.sens == 1) ? 'glyphicon glyphicon-chevron-left' : 'glyphicon glyphicon-chevron-right' "></div>
+            <div class="col-xs-7 col-m-6" ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.terminus}}"></div>
+            <div class="col-xs-3 col-m-4" ng-class=" { 'bg-success' : $first}" ng-bind-template="{{nextTram.temps}}"></div>
+        </div>
 
 </div>
 
-<div class="container" ng-controller="TraficController as trafic" ng-cloak>
+<div class="trafic-container" ng-controller="TraficController as trafic" ng-cloak>
     <h2 class="bg-primary text-center">Etat du réseau TAN</h2>
     <p class='bg-success' ng-bind="trafic.trafic.status">
     </p>
@@ -91,11 +64,8 @@ ORANGE = “6”; 0%
     </div>
     </p>
 </div>
-</div>
-
 
 </div>
-
 
 
 <!-- ANGULAR -->
@@ -113,5 +83,7 @@ ORANGE = “6”; 0%
 
 <!-- BOOTSTRAP -->
 <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js" integrity="sha384-BLiI7JTZm+JWlgKa0M0kGRpJbF2J8q+qreVrKBC47e3K6BW78kGLrCkeRX6I9RoK" crossorigin="anonymous"></script>-->
+
 </body>
 </html>
