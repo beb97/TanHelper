@@ -73,7 +73,7 @@
 
 </div>
 
-<div class="trafic-container" ng-controller="TraficController as trafic" ng-cloak>
+<div ng-show="false" class="trafic-container" ng-controller="TraficController as trafic" ng-cloak>
     <h1 class='bg-info text-xs-center'>Etat du réseau TAN</h1>
     <p class='bg-success' ng-bind="trafic.trafic.status">
     </p>
