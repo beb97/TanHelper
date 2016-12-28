@@ -14,7 +14,7 @@
      */
     app.controller('TramController', ['$http', '$scope', function ($http, $scope) {
 
-        $scope.phpProxy = "http://dotaspirit.com/t2/ajaxProxy.php";
+        $scope.phpProxy = "https://dotaspirit.com/t2/ajaxProxy.php";
         // http://open.tan.fr/ewp/horairesarret.json/RAZA/1/1
         // http://open.tan.fr/ewp/tempsattente.json/RAZA
         // http://open.tan.fr/ewp/arrets.json
@@ -56,13 +56,10 @@
             },
             isLigneGreyed: function (ligne) {
                 if ($scope.filter.selectedLigne.length == 0) {
-                    console.log("PAS DE FILTRE");
                     return false;
                 } else if ($scope.filter.selectedLigne.indexOf(ligne) != -1) {
-                    console.log("FILTRE OK");
                     return false;
                 } else {
-                    console.log("FILTRE KO");
                     return true;
                 }
             }
@@ -120,11 +117,31 @@
             limit: 15,
             numberOfTramsToShow: 15,
             numberOfTramsToShowMax: 15,
-
             isArretShow: false
         };
 
         $scope.selectedArret;
+        $scope.coord= {
+            longitude: null,
+            lattitude: null,
+            useCoord: false
+        };
+
+        $scope.getCoord = function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                        // SUCCESS
+                        console.log(position);
+                        $scope.coord.lattitude = position.coords.latitude.toString().replace(".", ",").substring(0, 10);
+                        $scope.coord.longitude = position.coords.longitude.toString().replace(".", ",").substring(0, 10);
+                        $scope.coord.useCoord = true;
+                    },
+                    function () {
+                        // ERROR
+                        console.log('Error getting localisation');
+                    });
+            }
+        };
 
         // Les retours des GET
         $scope.arrets = [{codeLieu:'0',libelle:"Loading...", disabled:true}];
@@ -142,20 +159,45 @@
 
             $scope.getHoraires();
 
+            $scope.getCoord();
+
         };
+
 
         $scope.gererArrets = function() {
 
             // Afficher bloc arrets
             // Ne charger les arrets qu'une fois
+
             if (!$scope.tramSettings.isArretShown) {
                 $scope.tramSettings.isArretShown = true;
                 // Charger arrets
-                $scope.loadArrets();
+
+                $scope.arrets[0].libelle = "Choisir arret :";
+                $scope.selectedArret = $scope.arrets[0];
+
+                $scope.getArrets();
+
+                if($scope.coord.useCoord) {
+                    console.log("MODE GEOLOC");
+                    $scope.getArretsGeolocalise();
+                }
+
             }
+
         };
 
-        $scope.loadArrets = function () {
+        $scope.formatDistance = function (distance) {
+            // return (distance==null)?"Tout":distance;
+            return (distance==null)?"Tout":distance;
+
+        };
+
+        $scope.orderDistance = function (distance) {
+          return (distance==null)?"Z":distance;
+        };
+
+        $scope.getArrets = function () {
             var req = {
                 method: "GET",
                 url: $scope.phpProxy,
@@ -171,11 +213,25 @@
                 }
             );
         };
+        $scope.getArretsGeolocalise = function () {
+            var req = {
+                method: "GET",
+                url: $scope.phpProxy,
+                params: { url: "http://open.tan.fr/ewp/arrets.json/"+$scope.coord.lattitude+"/"+$scope.coord.longitude}
+            };
+
+            $http(req).then(function(response) { // SUCCESS
+                    $scope.mapperArrets(response.data);
+                    console.log('LOADED ARRETS');
+                }
+                , function (response) { //ERROR
+                    console.log('FAILED ARRETS')
+                }
+            );
+        };
 
         $scope.mapperArrets = function (arrets) {
             $scope.arrets = $scope.arrets.concat(arrets);
-            $scope.arrets[0].libelle = "Choisir arret :";
-            $scope.selectedArret = $scope.arrets[0];
         };
 
 

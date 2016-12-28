@@ -5,7 +5,7 @@ $("#afficherLignes").on("click", function() {
         return;
 
 	// $("#arrets").load(ajaxArrets.php);
-	loadArrets();
+	getArrets();
     arretsLoaded = true;
 });
 
