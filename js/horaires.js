@@ -237,10 +237,12 @@
 
         $scope.updateLigne = function (ligne) {
 
-            if ($scope.filter.selectedLigne.indexOf(ligne) == -1) {
+            index = $scope.filter.selectedLigne.indexOf(ligne);
+            if (index == -1) {
                 $scope.filter.selectedLigne.push(ligne);
             } else {
-                $scope.filter.selectedLigne.pop(ligne);
+                // $scope.filter.selectedLigne.pop(ligne);
+                $scope.filter.selectedLigne.splice(index,1);
             }
         };
 

@@ -98,14 +98,18 @@
 
     </div>
 
-    <div ng-show="false" class="trafic-container" ng-controller="TraficController as trafic" ng-cloak>
-        <h1 class='bg-info text-xs-center'>Etat du réseau TAN</h1>
-        <p class='bg-success' ng-bind="trafic.trafic.status">
-        </p>
-        <p class='' ng-bind="trafic.trafic.niveau">
-        </p>
-        <button class="btn btn-info" type="button" id='affichertravaux' ng-click="trafic.loadTravaux = !trafic.loadTravaux">
-            Afficher les travaux
+
+<div ng-show="false" class="trafic-container" ng-controller="TraficController as trafic" ng-cloak>
+    <h1 class='bg-info text-xs-center'>Etat du réseau TAN</h1>
+    <p class='bg-success' ng-bind="trafic.trafic.status">
+    </p>
+    <p class='' ng-bind="trafic.trafic.niveau">
+    </p>
+    <button class="btn btn-info" type="button" id='affichertravaux' ng-click="trafic.loadTravaux = !trafic.loadTravaux">
+        Afficher les travaux
+    </button>
+    <div id="travaux" ng-show="trafic.loadTravaux" ng-repeat="incident in trafic.travaux track by $index" ng-init="details = false">
+        <button ng-bind-template="{{incident.titre}} : Lignes {{incident.lignes}}" class="btn btn-secondary" id='afficherdetails' ng-click="details = !details">
         </button>
         <div id="travaux" ng-show="trafic.loadTravaux" ng-repeat="incident in trafic.travaux track by $index" ng-init="details = false">
             <button ng-bind-template="{{incident.titre}} : Lignes {{incident.lignes}}" class="btn btn-secondary" id='afficherdetails' ng-click="details = !details">
